@@ -1,5 +1,5 @@
 The Klyra Nginx Setup project demonstrates a DevOps workflow for deploying a simple web application in a cloud environment. Its main goals are:
-_
+
 **Infrastructure as Code (IaC)**
 
 Use Terraform to provision an AWS EC2 instance and its security groups automatically.
