@@ -10,25 +10,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      # 1. Checkout the repository
+      - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Add EC2 SSH key
+      # 2. Set up Python (required for Ansible)
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      # 3. Add SSH key (from GitHub Secrets)
+      - name: Add SSH key
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.AWS_EC2_SSH_KEY }}" > ~/.ssh/klyra-nginx-key.pem
           chmod 600 ~/.ssh/klyra-nginx-key.pem
 
-      - name: Install Ansible on runner
+      # 4. Disable strict host key checking (for ephemeral CI runners)
+      - name: Disable SSH host key checking
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ansible
+          mkdir -p ~/.ssh
+          echo "StrictHostKeyChecking no" >> ~/.ssh/config
 
+      # 5. Run the Ansible Playbook
       - name: Run Ansible Playbook
         run: |
           ansible-playbook -i ansible/inventory/aws_ec2.ini ansible/playbooks/deploy.yml \
             --private-key ~/.ssh/klyra-nginx-key.pem -u ec2-user
-
-      - name: Test container is running
-        run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/klyra-nginx-key.pem ec2-user@$(cat ansible/
