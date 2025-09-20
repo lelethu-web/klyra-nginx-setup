@@ -1,0 +1,45 @@
+name: Deploy Nginx App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install Ansible and Docker
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ansible docker.io
+
+      - name: Add SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.AWS_EC2_SSH_KEY }}" > ~/.ssh/klyra-nginx-key.pem
+          chmod 600 ~/.ssh/klyra-nginx-key.pem
+          eval $(ssh-agent)
+          ssh-add ~/.ssh/klyra-nginx-key.pem
+
+      - name: Disable host key checking (avoid manual yes/no prompt)
+        run: |
+          echo "[defaults]" > ansible.cfg
+          echo "host_key_checking = False" >> ansible.cfg
+
+      - name: Run Ansible Playbook
+        run: |
+          ansible-playbook \
+            -i ansible/inventory/aws_ec2.ini \
+            ansible/playbooks/deploy.yml \
+            --key-file ~/.ssh/klyra-nginx-key.pem \
+            -u ec2-user
