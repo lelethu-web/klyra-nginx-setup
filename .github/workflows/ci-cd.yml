@@ -10,17 +10,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout repository
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Set up Python for Ansible
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
 
-      # Add SSH key
       - name: Add SSH key
         run: |
           mkdir -p ~/.ssh
@@ -28,7 +25,6 @@ jobs:
           chmod 600 ~/.ssh/klyra-nginx-key.pem
           echo -e "Host *\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 
-      # Run Ansible playbook
       - name: Run Ansible Playbook
         run: |
           ansible-playbook -i ansible/inventory/aws_ec2.ini \
