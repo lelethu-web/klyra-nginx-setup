@@ -1,36 +1,33 @@
-name: Deploy Nginx App
+- name: Deploy Dockerized Nginx app
+  hosts: web
+  become: true
+  tasks:
+    - name: Install required packages
+      yum:
+        name:
+          - docker
+          - git
+        state: present
 
-on:
-  push:
-    branches:
-      - main
+    - name: Start and enable Docker
+      systemd:
+        name: docker
+        state: started
+        enabled: true
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
+    - name: Copy app to server
+      copy:
+        src: ../../app/
+        dest: /home/ec2-user/app
+        owner: ec2-user
+        group: ec2-user
+        mode: 0755
 
-    steps:
-      # Checkout repository
-      - name: Checkout repo
-        uses: actions/checkout@v3
+    - name: Build Docker image
+      command: docker build -t klyra-nginx /home/ec2-user/app
+      args:
+        chdir: /home/ec2-user/app
 
-      # Set up Python for Ansible
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      # Add SSH key
-      - name: Add SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.AWS_EC2_SSH_KEY }}" > ~/.ssh/klyra-nginx-key.pem
-          chmod 600 ~/.ssh/klyra-nginx-key.pem
-          echo -e "Host *\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
-
-      # Run Ansible playbook
-      - name: Run Ansible Playbook
-        run: |
-          ansible-playbook -i ansible/inventory/aws_ec2.ini \
-          ansible/playbooks/deploy.yml \
-          --private-key ~/.ssh/klyra-nginx-key.pem -u ec2-user
+    - name: Run Docker container
+      command: docker run -d -p 80:80 --name klyra-nginx klyra-nginx
+      ignore_errors: yes
