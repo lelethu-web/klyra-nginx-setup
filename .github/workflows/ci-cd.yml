@@ -10,32 +10,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the repo
-      - name: Checkout repository
+      # Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v3
 
-      # Step 2: Set up Python (required for Ansible)
+      # Set up Python for Ansible
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
 
-      # Step 3: Install Ansible (no need to install Docker on runner)
+      # Install Ansible
       - name: Install Ansible
         run: |
           python -m pip install --upgrade pip
           pip install ansible
 
-      # Step 4: Add SSH key for EC2
+      # Add SSH key
       - name: Add SSH key
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.AWS_EC2_SSH_KEY }}" > ~/.ssh/klyra-nginx-key.pem
           chmod 600 ~/.ssh/klyra-nginx-key.pem
-          # Disable strict host checking to avoid first-time prompt
           echo -e "Host *\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 
-      # Step 5: Run the Ansible playbook
+      # Run Ansible playbook
       - name: Run Ansible Playbook
         run: |
           ansible-playbook -i ansible/inventory/aws_ec2.ini \

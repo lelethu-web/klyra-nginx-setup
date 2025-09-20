@@ -28,6 +28,9 @@
       args:
         chdir: /home/ec2-user/app
 
+    - name: Stop existing container if running
+      command: docker rm -f klyra-nginx
+      ignore_errors: yes
+
     - name: Run Docker container
       command: docker run -d -p 80:80 --name klyra-nginx klyra-nginx
-      ignore_errors: yes
