@@ -10,32 +10,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout the repo
-      - name: Checkout repository
+      # Step 1: Checkout the repository
+      - name: Checkout repo
         uses: actions/checkout@v3
 
-      # 2. Set up Python for Ansible
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      # 3. Install Ansible and Docker client
-      - name: Install Ansible and Docker client
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ansible docker.io
-
-      # 4. Add SSH key from GitHub secrets
+      # Step 2: Add EC2 private key from GitHub Secrets
       - name: Add SSH key
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.AWS_EC2_SSH_KEY }}" > ~/.ssh/klyra-nginx-key.pem
           chmod 600 ~/.ssh/klyra-nginx-key.pem
+          # Disable strict host key checking to avoid prompt
           echo -e "Host *\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 
-      # 5. Run the Ansible playbook
-      - name: Deploy via Ansible
+      # Step 3: Run Ansible playbook on EC2
+      - name: Run Ansible Playbook
         run: |
-          ansible-playbook -i ansible/inventory/aws_ec2.ini ansible/playbooks/deploy.yml \
-            --private-key ~/.ssh/klyra-nginx-key.pem -u ec2-user
+          ansible-playbook -i ansible/inventory/aws_ec2.ini \
+          ansible/playbooks/deploy.yml \
+          --private-key ~/.ssh/klyra-nginx-key.pem -u ec2-user
