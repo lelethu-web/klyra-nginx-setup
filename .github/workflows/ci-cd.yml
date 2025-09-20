@@ -24,7 +24,7 @@ jobs:
           sudo apt-get install -y ansible
 
       - name: Set up Docker
-        uses: docker/setup-docker@v3
+        uses: docker/setup-docker@v4
 
       - name: Add SSH key
         run: |
