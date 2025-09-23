@@ -42,10 +42,12 @@ resource "azurerm_subnet" "klyra" {
 # Create public IP
 resource "azurerm_public_ip" "klyra" {
   name                = "pip-klyra-nginx"
-  resource_group_name = azurerm_resource_group.klyra.name
   location            = azurerm_resource_group.klyra.location
-  allocation_method   = "Dynamic"
+  resource_group_name = azurerm_resource_group.klyra.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
+
 
 # Create Network Security Group and rule
 resource "azurerm_network_security_group" "klyra" {
@@ -133,7 +135,7 @@ resource "azurerm_linux_virtual_machine" "klyra" {
 
   admin_ssh_key {
     username   = "azureuser"
-    public_key = file("~/.ssh/klyra-nginx-key.pub")  # Update this path to your public key
+    public_key = file("~/.ssh/azure-key.pub")  # Update this path to your public key
   }
 
   os_disk {
