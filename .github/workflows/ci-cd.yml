@@ -1,4 +1,4 @@
-name: Deploy Nginx App
+name: Deploy Nginx App to Azure
 
 on:
   push:
@@ -30,13 +30,14 @@ jobs:
       - name: Add SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.AWS_EC2_SSH_KEY }}" > ~/.ssh/klyra-nginx-key.pem
-          chmod 600 ~/.ssh/klyra-nginx-key.pem
+          echo "${{ secrets.AZURE_SSH_KEY }}" > ~/.ssh/klyra-nginx-key
+          chmod 600 ~/.ssh/klyra-nginx-key
           echo -e "Host *\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 
       # Run Ansible playbook
       - name: Run Ansible Playbook
         run: |
-          ansible-playbook -i ansible/inventory/aws_ec2.ini \
+          ansible-playbook -i ansible/inventory/azure_vm.ini \
           ansible/playbooks/deploy.yml \
-          --private-key ~/.ssh/klyra-nginx-key.pem -u ec2-user
+          --private-key ~/.ssh/klyra-nginx-key -u azureuser
+          
